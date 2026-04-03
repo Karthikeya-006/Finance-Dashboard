@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ledger — Finance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0d0d0d;
+  --bg2: #141414;
+  --bg3: #1a1a1a;
+  --bg4: #222222;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0ede6;
+  --text2: #a8a39a;
+  --text3: #6b6560;
+  --accent: #c8f060;
+  --accent2: #a8d840;
+  --red: #ff6b6b;
+  --red2: #cc4444;
+  --blue: #6bb3ff;
+  --amber: #ffb347;
+  --purple: #b088ff;
+  --teal: #4ecdc4;
+  --font-display: 'DM Serif Display', serif;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --r: 12px;
+  --r2: 8px;
+}
+[data-theme="light"] {
+  --bg: #f5f3ee;
+  --bg2: #edeae3;
+  --bg3: #e5e2db;
+  --bg4: #dbd8d1;
+  --border: rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.13);
+  --text: #1a1814;
+  --text2: #6b6560;
+  --text3: #a8a39a;
+  --accent: #3a7000;
+  --accent2: #2d5800;
+  --red: #cc3333;
+  --red2: #992222;
+  --blue: #1a6acc;
+  --amber: #b87800;
+  --purple: #6633cc;
+  --teal: #1a8a85;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+
+.app{display:flex;min-height:100vh;}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s;}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+.logo-mark{font-family:var(--font-display);font-size:22px;color:var(--text);letter-spacing:-0.5px;}
+.logo-mark span{color:var(--accent);}
+.logo-sub{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto;}
+.nav-section{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:1.5px;text-transform:uppercase;padding:8px 8px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r2);cursor:pointer;color:var(--text2);transition:.15s;font-size:13.5px;font-weight:400;border:none;background:none;width:100%;text-align:left;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--accent);color:#0d1a00;font-weight:600;}
+.nav-item.active .nav-icon{color:#0d1a00;}
+.nav-icon{font-size:15px;width:18px;text-align:center;}
+.sidebar-bottom{padding:16px 12px;border-top:1px solid var(--border);}
+.role-badge{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:var(--r2);margin-bottom:10px;}
+.role-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.role-name{font-size:12px;font-weight:500;color:var(--text);}
+.role-label{font-size:10px;color:var(--text3);}
+select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--r2);padding:7px 10px;font-size:12.5px;font-family:var(--font-sans);width:100%;cursor:pointer;outline:none;}
+select:focus{border-color:var(--accent);}
+option{background:var(--bg2);}
+
+.main{margin-left:220px;flex:1;min-width:0;}
+.topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--bg);position:sticky;top:0;z-index:50;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.page-title{font-family:var(--font-display);font-size:19px;color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn{padding:7px 14px;border-radius:var(--r2);border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font-sans);font-size:12.5px;cursor:pointer;transition:.15s;font-weight:500;}
+.btn:hover{background:var(--bg3);color:var(--text);}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#0d1a00;font-weight:600;}
+.btn-primary:hover{background:var(--accent2);border-color:var(--accent2);color:#0d1a00;}
+.btn-danger{border-color:var(--red2);color:var(--red);}
+.btn-danger:hover{background:rgba(255,107,107,0.1);}
+.content{padding:24px 28px;}
+
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;transition:.2s;}
+.card:hover{border-color:var(--border2);}
+.card-label{font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:30px;letter-spacing:-1px;line-height:1;margin-bottom:6px;}
+.card-sub{font-size:12px;color:var(--text2);}
+.card-accent{border-color:rgba(200,240,96,0.25);background:linear-gradient(135deg,var(--bg2) 0%, rgba(200,240,96,0.04) 100%);}
+.card-income .card-value{color:var(--accent);}
+.card-expense .card-value{color:var(--red);}
+.card-balance .card-value{color:var(--text);}
+.trend-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:99px;font-weight:500;}
+.trend-up{background:rgba(200,240,96,0.12);color:var(--accent);}
+.trend-down{background:rgba(255,107,107,0.12);color:var(--red);}
+
+.charts-grid{display:grid;grid-template-columns:1.8fr 1fr;gap:14px;margin-bottom:24px;}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.chart-title{font-size:13.5px;font-weight:500;color:var(--text);}
+.chart-sub{font-size:11px;color:var(--text3);}
+.chart-wrap{position:relative;}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:15px;font-weight:500;color:var(--text);}
+.filters-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.filter-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:var(--r2);padding:7px 12px;font-size:13px;font-family:var(--font-sans);outline:none;transition:.15s;}
+.filter-input:focus{border-color:var(--border2);}
+.filter-input::placeholder{color:var(--text3);}
+.filter-input.search{flex:1;min-width:160px;}
+.filter-select{background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:var(--r2);padding:7px 10px;font-size:12.5px;font-family:var(--font-sans);cursor:pointer;outline:none;}
+.filter-select:focus{border-color:var(--border2);}
+.tx-table{width:100%;border-collapse:collapse;}
+.tx-table th{font-size:10.5px;color:var(--text3);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;padding:0 12px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.tx-table th.sortable{cursor:pointer;user-select:none;}
+.tx-table th.sortable:hover{color:var(--text2);}
+.tx-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tx-table tr:last-child td{border-bottom:none;}
+.tx-table tr:hover td{background:var(--bg3);}
+.tx-cat{display:inline-flex;align-items:center;gap:5px;font-size:12px;}
+.cat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tx-amount{font-family:var(--font-mono);font-size:13px;font-weight:500;}
+.tx-amount.income{color:var(--accent);}
+.tx-amount.expense{color:var(--red);}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500;}
+.badge-income{background:rgba(200,240,96,0.12);color:var(--accent);}
+.badge-expense{background:rgba(255,107,107,0.12);color:var(--red);}
+.tx-date{font-size:12px;color:var(--text3);font-family:var(--font-mono);}
+.tx-desc{font-size:13px;color:var(--text);}
+.tx-actions{display:flex;gap:6px;opacity:0;transition:.15s;}
+tr:hover .tx-actions{opacity:1;}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--text2);border-radius:var(--r2);padding:4px 8px;cursor:pointer;font-size:12px;transition:.15s;}
+.icon-btn:hover{background:var(--bg4);color:var(--text);}
+.icon-btn.del:hover{border-color:var(--red2);color:var(--red);}
+.empty-state{text-align:center;padding:48px 0;color:var(--text3);}
+.empty-icon{font-size:36px;margin-bottom:12px;}
+.empty-text{font-size:14px;}
+
+.insights-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+.insight-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;}
+.insight-icon{font-size:22px;margin-bottom:10px;}
+.insight-label{font-size:10.5px;color:var(--text3);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.insight-value{font-family:var(--font-display);font-size:22px;letter-spacing:-0.5px;margin-bottom:4px;}
+.insight-note{font-size:12px;color:var(--text2);}
+
+.cat-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cat-bar-label{font-size:12px;color:var(--text2);width:90px;flex-shrink:0;}
+.cat-bar-track{flex:1;height:6px;background:var(--bg4);border-radius:99px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.cat-bar-val{font-size:12px;font-family:var(--font-mono);color:var(--text2);width:60px;text-align:right;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:440px;padding:24px;}
+.modal-title{font-family:var(--font-display);font-size:20px;margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11.5px;color:var(--text2);font-weight:500;display:block;margin-bottom:5px;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--r2);padding:8px 12px;font-size:13.5px;font-family:var(--font-sans);outline:none;}
+.form-input:focus{border-color:var(--accent);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.theme-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:var(--r2);padding:7px 12px;cursor:pointer;font-size:18px;line-height:1;transition:.15s;}
+.theme-btn:hover{background:var(--bg4);}
+.table-wrap{overflow-x:auto;}
+.hamburger{display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:var(--r2);padding:7px 10px;cursor:pointer;font-size:16px;}
+.pagination{display:flex;align-items:center;gap:6px;margin-top:14px;justify-content:flex-end;}
+.page-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:var(--r2);padding:5px 10px;cursor:pointer;font-size:12px;font-family:var(--font-mono);transition:.15s;}
+.page-btn:hover{background:var(--bg3);color:var(--text);}
+.page-btn.active{background:var(--accent);border-color:var(--accent);color:#0d1a00;font-weight:600;}
+.page-btn:disabled{opacity:0.35;cursor:not-allowed;}
+
+@media(max-width:900px){
+  .charts-grid{grid-template-columns:1fr;}
+  .summary-grid{grid-template-columns:1fr 1fr;}
+  .insights-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:680px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:block;}
+  .summary-grid{grid-template-columns:1fr;}
+  .insights-grid{grid-template-columns:1fr;}
+  .content{padding:16px;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+const CATEGORIES = {
+  Food:        { color: '#ffb347', emoji: '🍔' },
+  Transport:   { color: '#6bb3ff', emoji: '🚗' },
+  Shopping:    { color: '#b088ff', emoji: '🛍️' },
+  Healthcare:  { color: '#ff6b6b', emoji: '💊' },
+  Utilities:   { color: '#4ecdc4', emoji: '⚡' },
+  Salary:      { color: '#c8f060', emoji: '💰' },
+  Freelance:   { color: '#a8d840', emoji: '💻' },
+  Investment:  { color: '#80d8c8', emoji: '📈' },
+  Entertainment:{ color: '#f0a0e0', emoji: '🎮' },
+};
+
+const SEED_TRANSACTIONS = [
+  {id:1,  date:'2025-06-01', desc:'Monthly Salary',        cat:'Salary',      type:'income',  amount:5200},
+  {id:2,  date:'2025-06-02', desc:'Grocery Store',         cat:'Food',        type:'expense', amount:138},
+  {id:3,  date:'2025-06-03', desc:'Uber Ride',             cat:'Transport',   type:'expense', amount:22},
+  {id:4,  date:'2025-06-04', desc:'Netflix',               cat:'Entertainment',type:'expense',amount:15},
+  {id:5,  date:'2025-06-05', desc:'Freelance Project',     cat:'Freelance',   type:'income',  amount:800},
+  {id:6,  date:'2025-06-06', desc:'Electric Bill',         cat:'Utilities',   type:'expense', amount:94},
+  {id:7,  date:'2025-06-07', desc:'Amazon Order',          cat:'Shopping',    type:'expense', amount:210},
+  {id:8,  date:'2025-06-08', desc:'Doctor Visit',          cat:'Healthcare',  type:'expense', amount:75},
+  {id:9,  date:'2025-06-10', desc:'Restaurant Dinner',     cat:'Food',        type:'expense', amount:62},
+  {id:10, date:'2025-06-12', desc:'Bus Pass',              cat:'Transport',   type:'expense', amount:45},
+  {id:11, date:'2025-06-13', desc:'Dividend Income',       cat:'Investment',  type:'income',  amount:320},
+  {id:12, date:'2025-06-14', desc:'Coffee Shop',           cat:'Food',        type:'expense', amount:18},
+  {id:13, date:'2025-06-15', desc:'Clothing Purchase',     cat:'Shopping',    type:'expense', amount:155},
+  {id:14, date:'2025-06-16', desc:'Internet Bill',         cat:'Utilities',   type:'expense', amount:60},
+  {id:15, date:'2025-06-17', desc:'Pharmacy',              cat:'Healthcare',  type:'expense', amount:40},
+  {id:16, date:'2025-06-18', desc:'Movie Tickets',         cat:'Entertainment',type:'expense',amount:28},
+  {id:17, date:'2025-06-19', desc:'Supermarket',           cat:'Food',        type:'expense', amount:95},
+  {id:18, date:'2025-06-20', desc:'Freelance Bonus',       cat:'Freelance',   type:'income',  amount:400},
+  {id:19, date:'2025-06-21', desc:'Gas Station',           cat:'Transport',   type:'expense', amount:55},
+  {id:20, date:'2025-06-22', desc:'Online Course',         cat:'Shopping',    type:'expense', amount:79},
+  {id:21, date:'2025-05-01', desc:'Monthly Salary',        cat:'Salary',      type:'income',  amount:5200},
+  {id:22, date:'2025-05-04', desc:'Restaurant',            cat:'Food',        type:'expense', amount:88},
+  {id:23, date:'2025-05-07', desc:'New Shoes',             cat:'Shopping',    type:'expense', amount:120},
+  {id:24, date:'2025-05-10', desc:'Electric Bill',         cat:'Utilities',   type:'expense', amount:87},
+  {id:25, date:'2025-05-12', desc:'Freelance Work',        cat:'Freelance',   type:'income',  amount:650},
+  {id:26, date:'2025-05-15', desc:'Pharmacy',              cat:'Healthcare',  type:'expense', amount:55},
+  {id:27, date:'2025-05-18', desc:'Transport Card',        cat:'Transport',   type:'expense', amount:45},
+  {id:28, date:'2025-05-22', desc:'Stock Dividend',        cat:'Investment',  type:'income',  amount:280},
+  {id:29, date:'2025-05-25', desc:'Grocery',               cat:'Food',        type:'expense', amount:110},
+  {id:30, date:'2025-05-28', desc:'Gaming Subscription',   cat:'Entertainment',type:'expense',amount:12},
+];
+
+const fmt = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
+const fmtFull = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(n);
+const fmtDate = (d) => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});
+
+const STORAGE_KEY = 'ledger_v1';
+function loadState() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch {}
+  return null;
+}
+function saveState(txs, role, theme) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({txs, role, theme})); } catch {}
+}
+
+function BarChart({ data }) {
+  const ref = useRef(null);
+  const inst = useRef(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (inst.current) inst.current.destroy();
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+    const textColor = isDark ? '#6b6560' : '#a8a39a';
+    inst.current = new Chart(ref.current, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.label),
+        datasets: [
+          { label: 'Income',   data: data.map(d => d.income),  backgroundColor: 'rgba(200,240,96,0.7)',  borderRadius: 4, borderSkipped: false },
+          { label: 'Expenses', data: data.map(d => d.expense), backgroundColor: 'rgba(255,107,107,0.6)', borderRadius: 4, borderSkipped: false },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'DM Mono', size: 11 } } },
+          y: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'DM Mono', size: 11 }, callback: v => '$'+(v>=1000?v/1000+'k':v) } }
+        }
+      }
+    });
+    return () => inst.current && inst.current.destroy();
+  }, [JSON.stringify(data)]);
+  return React.createElement('div', { style:{ position:'relative', height:'220px' } },
+    React.createElement('canvas', { ref }));
+}
+
+function DoughnutChart({ data }) {
+  const ref = useRef(null);
+  const inst = useRef(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (inst.current) inst.current.destroy();
+    inst.current = new Chart(ref.current, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => d.label),
+        datasets: [{ data: data.map(d => d.value), backgroundColor: data.map(d => d.color), borderWidth: 0, hoverOffset: 6 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '70%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${ctx.raw}` } } },
+      }
+    });
+    return () => inst.current && inst.current.destroy();
+  }, [JSON.stringify(data)]);
+  return React.createElement('div', { style:{ position:'relative', height:'180px' } },
+    React.createElement('canvas', { ref }));
+}
+
+function Modal({ title, onClose, children }) {
+  useEffect(() => {
+    const h = e => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+  return React.createElement('div', { className:'modal-overlay', onClick: e => { if(e.target===e.currentTarget) onClose(); } },
+    React.createElement('div', { className:'modal' },
+      React.createElement('div', { style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'18px'} },
+        React.createElement('div', { className:'modal-title' }, title),
+        React.createElement('button', { className:'btn', style:{padding:'5px 10px'}, onClick: onClose }, '✕')
+      ),
+      children
+    )
+  );
+}
+
+function AddEditModal({ tx, onSave, onClose }) {
+  const [form, setForm] = useState(tx || {date: new Date().toISOString().slice(0,10), desc:'', cat:'Food', type:'expense', amount:''});
+  const set = (k, v) => setForm(f => ({...f, [k]: v}));
+  const valid = form.desc && form.amount > 0 && form.date;
+  return React.createElement(Modal, { title: tx ? 'Edit Transaction' : 'Add Transaction', onClose },
+    React.createElement('div', { className:'form-group' },
+      React.createElement('label', { className:'form-label' }, 'Description'),
+      React.createElement('input', { className:'form-input', value:form.desc, placeholder:'e.g. Grocery Store', onChange: e => set('desc', e.target.value) })
+    ),
+    React.createElement('div', { className:'form-row' },
+      React.createElement('div', { className:'form-group' },
+        React.createElement('label', { className:'form-label' }, 'Amount'),
+        React.createElement('input', { className:'form-input', type:'number', min:'0', value:form.amount, placeholder:'0', onChange: e => set('amount', parseFloat(e.target.value)||'') })
+      ),
+      React.createElement('div', { className:'form-group' },
+        React.createElement('label', { className:'form-label' }, 'Date'),
+        React.createElement('input', { className:'form-input', type:'date', value:form.date, onChange: e => set('date', e.target.value) })
+      )
+    ),
+    React.createElement('div', { className:'form-row' },
+      React.createElement('div', { className:'form-group' },
+        React.createElement('label', { className:'form-label' }, 'Category'),
+        React.createElement('select', { className:'form-input', value:form.cat, onChange: e => set('cat', e.target.value) },
+          Object.keys(CATEGORIES).map(c => React.createElement('option', { key:c }, c))
+        )
+      ),
+      React.createElement('div', { className:'form-group' },
+        React.createElement('label', { className:'form-label' }, 'Type'),
+        React.createElement('select', { className:'form-input', value:form.type, onChange: e => set('type', e.target.value) },
+          React.createElement('option', { value:'expense' }, 'Expense'),
+          React.createElement('option', { value:'income'  }, 'Income')
+        )
+      )
+    ),
+    React.createElement('div', { className:'modal-actions' },
+      React.createElement('button', { className:'btn', onClick:onClose }, 'Cancel'),
+      React.createElement('button', { className:'btn btn-primary', disabled:!valid, onClick: () => valid && onSave(form) }, tx ? 'Save Changes' : 'Add Transaction')
+    )
+  );
+}
+
+function App() {
+  const saved = loadState();
+  const [transactions, setTransactions] = useState(saved?.txs || SEED_TRANSACTIONS);
+  const [role,         setRole]         = useState(saved?.role  || 'admin');
+  const [theme,        setTheme]        = useState(saved?.theme || 'dark');
+  const [page,         setPage]         = useState('dashboard');
+  const [search,       setSearch]       = useState('');
+  const [filterCat,    setFilterCat]    = useState('all');
+  const [filterType,   setFilterType]   = useState('all');
+  const [sortKey,      setSortKey]      = useState('date');
+  const [sortDir,      setSortDir]      = useState('desc');
+  const [modal,        setModal]        = useState(null);
+  const [currentPage,  setCurrentPage]  = useState(1);
+  const [sidebarOpen,  setSidebarOpen]  = useState(false);
+  const isAdmin = role === 'admin';
+  const PAGE_SIZE = 8;
+
+  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
+  useEffect(() => { saveState(transactions, role, theme); }, [transactions, role, theme]);
+
+  const totalIncome  = useMemo(() => transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),  [transactions]);
+  const totalExpense = useMemo(() => transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0), [transactions]);
+  const balance      = totalIncome - totalExpense;
+
+  const jun = useMemo(() => transactions.filter(t=>t.date.startsWith('2025-06')), [transactions]);
+  const may = useMemo(() => transactions.filter(t=>t.date.startsWith('2025-05')), [transactions]);
+  const junIncome  = jun.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const junExpense = jun.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const mayExpense = may.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+
+  const catSpend = useMemo(() => {
+    const m = {};
+    transactions.filter(t=>t.type==='expense').forEach(t => { m[t.cat]=(m[t.cat]||0)+t.amount; });
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  }, [transactions]);
+
+  const topCat   = catSpend[0];
+  const barData  = useMemo(() => [
+    { label:'Apr', income:5200, expense:820 },
+    { label:'May', income:may.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),  expense:mayExpense },
+    { label:'Jun', income:junIncome, expense:junExpense },
+  ], [junIncome, junExpense, mayExpense]);
+  const donutData = useMemo(() =>
+    catSpend.slice(0,6).map(([cat,val]) => ({ label:cat, value:val, color:CATEGORIES[cat]?.color||'#888' })),
+    [catSpend]
+  );
+
+  const filtered = useMemo(() => {
+    let res = [...transactions];
+    if (search)           res = res.filter(t => t.desc.toLowerCase().includes(search.toLowerCase()) || t.cat.toLowerCase().includes(search.toLowerCase()));
+    if (filterCat!=='all')  res = res.filter(t => t.cat===filterCat);
+    if (filterType!=='all') res = res.filter(t => t.type===filterType);
+    res.sort((a,b) => {
+      let av=a[sortKey], bv=b[sortKey];
+      if (sortKey==='amount'){av=+av;bv=+bv;}
+      if (av<bv) return sortDir==='asc'?-1:1;
+      if (av>bv) return sortDir==='asc'?1:-1;
+      return 0;
+    });
+    return res;
+  }, [transactions, search, filterCat, filterType, sortKey, sortDir]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+
+  const sort = (key) => {
+    if (sortKey===key) setSortDir(d=>d==='asc'?'desc':'asc');
+    else { setSortKey(key); setSortDir('desc'); }
+  };
+  const sortIcon = (key) => sortKey===key ? (sortDir==='asc'?' ↑':' ↓') : ' ↕';
+
+  const handleAdd    = (form) => { setTransactions(prev => [{ ...form, id:Date.now(), amount:parseFloat(form.amount) }, ...prev]); setModal(null); };
+  const handleEdit   = (form) => { setTransactions(prev => prev.map(t => t.id===form.id ? {...form,amount:parseFloat(form.amount)} : t)); setModal(null); };
+  const handleDelete = (id)   => { if (window.confirm('Delete this transaction?')) setTransactions(prev=>prev.filter(t=>t.id!==id)); };
+
+  const exportCSV = () => {
+    const rows = ['Date,Description,Category,Type,Amount', ...filtered.map(t=>`${t.date},"${t.desc}",${t.cat},${t.type},${t.amount}`)].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([rows],{type:'text/csv'}));
+    a.download = 'transactions.csv';
+    a.click();
+  };
+
+  const renderDashboard = () => React.createElement('div', null,
+    React.createElement('div', { className:'summary-grid' },
+      React.createElement('div', { className:'card card-balance card-accent' },
+        React.createElement('div', { className:'card-label' }, 'Net Balance'),
+        React.createElement('div', { className:'card-value' }, fmt(balance)),
+        React.createElement('div', { className:'card-sub' },
+          React.createElement('span', { className:`trend-pill ${balance>=0?'trend-up':'trend-down'}` }, balance>=0?'▲ Positive':'▼ Negative')
+        )
+      ),
+      React.createElement('div', { className:'card card-income' },
+        React.createElement('div', { className:'card-label' }, 'Total Income'),
+        React.createElement('div', { className:'card-value' }, fmt(totalIncome)),
+        React.createElement('div', { className:'card-sub' }, `${transactions.filter(t=>t.type==='income').length} transactions`)
+      ),
+      React.createElement('div', { className:'card card-expense' },
+        React.createElement('div', { className:'card-label' }, 'Total Expenses'),
+        React.createElement('div', { className:'card-value' }, fmt(totalExpense)),
+        React.createElement('div', { className:'card-sub' }, `${transactions.filter(t=>t.type==='expense').length} transactions`)
+      )
+    ),
+    React.createElement('div', { className:'charts-grid' },
+      React.createElement('div', { className:'chart-card' },
+        React.createElement('div', { className:'chart-header' },
+          React.createElement('div', null,
+            React.createElement('div', { className:'chart-title' }, 'Monthly Overview'),
+            React.createElement('div', { className:'chart-sub' }, 'Income vs Expenses')
+          ),
+          React.createElement('div', { style:{display:'flex',gap:10} },
+            React.createElement('span', { style:{fontSize:'11px',display:'flex',alignItems:'center',gap:5,color:'var(--text2)'} },
+              React.createElement('span', { style:{width:10,height:10,borderRadius:2,background:'rgba(200,240,96,0.7)',display:'inline-block'} }), 'Income'
+            ),
+            React.createElement('span', { style:{fontSize:'11px',display:'flex',alignItems:'center',gap:5,color:'var(--text2)'} },
+              React.createElement('span', { style:{width:10,height:10,borderRadius:2,background:'rgba(255,107,107,0.6)',display:'inline-block'} }), 'Expenses'
+            )
+          )
+        ),
+        React.createElement(BarChart, { data:barData })
+      ),
+      React.createElement('div', { className:'chart-card' },
+        React.createElement('div', { className:'chart-header' },
+          React.createElement('div', { className:'chart-title' }, 'Spending Breakdown')
+        ),
+        React.createElement(DoughnutChart, { data:donutData }),
+        React.createElement('div', { style:{marginTop:12} },
+          donutData.slice(0,4).map(d =>
+            React.createElement('div', { key:d.label, className:'cat-bar-row' },
+              React.createElement('span', { className:'cat-bar-label' }, d.label),
+              React.createElement('div', { className:'cat-bar-track' },
+                React.createElement('div', { className:'cat-bar-fill', style:{width:`${Math.round(d.value/donutData[0].value*100)}%`,background:d.color} })
+              ),
+              React.createElement('span', { className:'cat-bar-val' }, fmt(d.value))
+            )
+          )
+        )
+      )
+    )
+  );
+
+  const renderTransactions = () => React.createElement('div', null,
+    React.createElement('div', { className:'section-header' },
+      React.createElement('div', { className:'section-title' }, `Transactions (${filtered.length})`),
+      isAdmin && React.createElement('button', { className:'btn btn-primary', onClick:()=>setModal('add') }, '+ Add Transaction')
+    ),
+    React.createElement('div', { className:'filters-row' },
+      React.createElement('input', { className:'filter-input search', placeholder:'Search transactions…', value:search, onChange:e=>{setSearch(e.target.value);setCurrentPage(1);} }),
+      React.createElement('select', { className:'filter-select', value:filterCat, onChange:e=>{setFilterCat(e.target.value);setCurrentPage(1);} },
+        React.createElement('option', { value:'all' }, 'All Categories'),
+        Object.keys(CATEGORIES).map(c => React.createElement('option', { key:c, value:c }, c))
+      ),
+      React.createElement('select', { className:'filter-select', value:filterType, onChange:e=>{setFilterType(e.target.value);setCurrentPage(1);} },
+        React.createElement('option', { value:'all' }, 'All Types'),
+        React.createElement('option', { value:'income' }, 'Income'),
+        React.createElement('option', { value:'expense' }, 'Expense')
+      ),
+      React.createElement('button', { className:'btn', onClick:exportCSV }, '↓ CSV')
+    ),
+    React.createElement('div', { className:'card', style:{padding:0,overflow:'hidden'} },
+      paginated.length === 0
+        ? React.createElement('div', { className:'empty-state' },
+            React.createElement('div', { className:'empty-icon' }, '🔍'),
+            React.createElement('div', { className:'empty-text' }, 'No transactions match your filters')
+          )
+        : React.createElement('div', { className:'table-wrap' },
+            React.createElement('table', { className:'tx-table' },
+              React.createElement('thead', null,
+                React.createElement('tr', null,
+                  React.createElement('th', { className:'sortable', onClick:()=>sort('date') }, 'Date'+sortIcon('date')),
+                  React.createElement('th', null, 'Description'),
+                  React.createElement('th', null, 'Category'),
+                  React.createElement('th', null, 'Type'),
+                  React.createElement('th', { className:'sortable', onClick:()=>sort('amount'), style:{textAlign:'right'} }, 'Amount'+sortIcon('amount')),
+                  isAdmin && React.createElement('th', null, '')
+                )
+              ),
+              React.createElement('tbody', null,
+                paginated.map(tx =>
+                  React.createElement('tr', { key:tx.id },
+                    React.createElement('td', null, React.createElement('span', { className:'tx-date' }, fmtDate(tx.date))),
+                    React.createElement('td', null, React.createElement('span', { className:'tx-desc' }, tx.desc)),
+                    React.createElement('td', null,
+                      React.createElement('span', { className:'tx-cat' },
+                        React.createElement('span', { className:'cat-dot', style:{background:CATEGORIES[tx.cat]?.color||'#888'} }),
+                        tx.cat
+                      )
+                    ),
+                    React.createElement('td', null,
+                      React.createElement('span', { className:`badge badge-${tx.type}` }, tx.type)
+                    ),
+                    React.createElement('td', { style:{textAlign:'right'} },
+                      React.createElement('span', { className:`tx-amount ${tx.type}` }, (tx.type==='expense'?'-':'+')+fmtFull(tx.amount))
+                    ),
+                    isAdmin && React.createElement('td', null,
+                      React.createElement('div', { className:'tx-actions' },
+                        React.createElement('button', { className:'icon-btn', onClick:()=>setModal(tx) }, '✎'),
+                        React.createElement('button', { className:'icon-btn del', onClick:()=>handleDelete(tx.id) }, '✕')
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+    ),
+    totalPages > 1 && React.createElement('div', { className:'pagination' },
+      React.createElement('button', { className:'page-btn', disabled:currentPage===1, onClick:()=>setCurrentPage(p=>p-1) }, '‹'),
+      ...Array.from({length:totalPages},(_,i) =>
+        React.createElement('button', { key:i+1, className:`page-btn${currentPage===i+1?' active':''}`, onClick:()=>setCurrentPage(i+1) }, i+1)
+      ),
+      React.createElement('button', { className:'page-btn', disabled:currentPage===totalPages, onClick:()=>setCurrentPage(p=>p+1) }, '›')
+    )
+  );
+
+  const renderInsights = () => {
+    const savingsRate   = totalIncome > 0 ? Math.round((balance/totalIncome)*100) : 0;
+    const expChangePct  = mayExpense  > 0 ? Math.round(((junExpense-mayExpense)/mayExpense)*100) : 0;
+    const avgTx         = transactions.filter(t=>t.type==='expense').length > 0
+                          ? totalExpense / transactions.filter(t=>t.type==='expense').length : 0;
+    return React.createElement('div', null,
+      React.createElement('div', { className:'insights-grid' },
+        React.createElement('div', { className:'insight-card' },
+          React.createElement('div', { className:'insight-icon' }, topCat?CATEGORIES[topCat[0]]?.emoji:'📊'),
+          React.createElement('div', { className:'insight-label' }, 'Top Spending Category'),
+          React.createElement('div', { className:'insight-value', style:{color:topCat?CATEGORIES[topCat[0]]?.color:'var(--text)'} }, topCat?topCat[0]:'—'),
+          React.createElement('div', { className:'insight-note' }, topCat?fmt(topCat[1])+' total spent':'No data')
+        ),
+        React.createElement('div', { className:'insight-card' },
+          React.createElement('div', { className:'insight-icon' }, '📊'),
+          React.createElement('div', { className:'insight-label' }, 'Savings Rate'),
+          React.createElement('div', { className:'insight-value', style:{color:savingsRate>=20?'var(--accent)':savingsRate>=0?'var(--amber)':'var(--red)'} }, savingsRate+'%'),
+          React.createElement('div', { className:'insight-note' }, savingsRate>=20?'Great savings habit!':savingsRate>=0?'Room to improve':'Spending exceeds income')
+        ),
+        React.createElement('div', { className:'insight-card' },
+          React.createElement('div', { className:'insight-icon' }, '📅'),
+          React.createElement('div', { className:'insight-label' }, 'Month-over-Month'),
+          React.createElement('div', { className:'insight-value', style:{color:expChangePct<=0?'var(--accent)':'var(--red)'} }, (expChangePct>0?'+':'')+expChangePct+'%'),
+          React.createElement('div', { className:'insight-note' }, 'Expense change May → Jun')
+        )
+      ),
+      React.createElement('div', { className:'charts-grid' },
+        React.createElement('div', { className:'chart-card' },
+          React.createElement('div', { className:'chart-header' },
+            React.createElement('div', { className:'chart-title' }, 'Spending by Category')
+          ),
+          catSpend.map(([cat,val]) =>
+            React.createElement('div', { key:cat, className:'cat-bar-row', style:{marginBottom:12} },
+              React.createElement('span', { style:{fontSize:'13px',color:'var(--text2)',width:110,flexShrink:0} }, (CATEGORIES[cat]?.emoji||'')+'  '+cat),
+              React.createElement('div', { className:'cat-bar-track', style:{height:8} },
+                React.createElement('div', { className:'cat-bar-fill', style:{width:`${Math.round(val/catSpend[0][1]*100)}%`,background:CATEGORIES[cat]?.color||'#888'} })
+              ),
+              React.createElement('span', { className:'cat-bar-val' }, fmt(val))
+            )
+          )
+        ),
+        React.createElement('div', { className:'chart-card' },
+          React.createElement('div', { className:'chart-header' },
+            React.createElement('div', { className:'chart-title' }, 'Quick Stats')
+          ),
+          [
+            ['Total Transactions', transactions.length],
+            ['Avg Expense Size',   fmtFull(avgTx)],
+            ['Jun Income',         fmt(junIncome)],
+            ['Jun Expenses',       fmt(junExpense)],
+            ['Jun Savings',        fmt(junIncome-junExpense)],
+            ['May Expenses',       fmt(mayExpense)],
+          ].map(([label,val]) =>
+            React.createElement('div', { key:label, style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid var(--border)'} },
+              React.createElement('span', { style:{fontSize:'13px',color:'var(--text2)'} }, label),
+              React.createElement('span', { style:{fontFamily:'var(--font-mono)',fontSize:'13px',fontWeight:500} }, val)
+            )
+          )
+        )
+      )
+    );
+  };
+
+  const navItems = [
+    { id:'dashboard',    icon:'⬛', label:'Dashboard' },
+    { id:'transactions', icon:'◻',  label:'Transactions' },
+    { id:'insights',     icon:'◈',  label:'Insights' },
+  ];
+
+  return React.createElement('div', { className:'app' },
+    React.createElement('aside', { className:`sidebar${sidebarOpen?' open':''}` },
+      React.createElement('div', { className:'sidebar-logo' },
+        React.createElement('div', { className:'logo-mark' }, 'Ledger', React.createElement('span', null, '.')),
+        React.createElement('div', { className:'logo-sub' }, 'Finance Dashboard')
+      ),
+      React.createElement('nav', { className:'sidebar-nav' },
+        React.createElement('div', { className:'nav-section' }, 'Navigation'),
+        navItems.map(n =>
+          React.createElement('button', { key:n.id, className:`nav-item${page===n.id?' active':''}`, onClick:()=>{setPage(n.id);setSidebarOpen(false);} },
+            React.createElement('span', { className:'nav-icon' }, n.icon), n.label
+          )
+        )
+      ),
+      React.createElement('div', { className:'sidebar-bottom' },
+        React.createElement('div', { className:'role-badge' },
+          React.createElement('div', { className:'role-dot', style:{background:role==='admin'?'var(--accent)':'var(--blue)'} }),
+          React.createElement('div', null,
+            React.createElement('div', { className:'role-name' }, role==='admin'?'Admin':'Viewer'),
+            React.createElement('div', { className:'role-label' }, role==='admin'?'Full access':'Read only')
+          )
+        ),
+        React.createElement('select', { value:role, onChange:e=>setRole(e.target.value) },
+          React.createElement('option', { value:'admin' }, 'Admin'),
+          React.createElement('option', { value:'viewer' }, 'Viewer')
+        )
+      )
+    ),
+    React.createElement('main', { className:'main' },
+      React.createElement('div', { className:'topbar' },
+        React.createElement('div', { className:'topbar-left' },
+          React.createElement('button', { className:'hamburger', onClick:()=>setSidebarOpen(o=>!o) }, '☰'),
+          React.createElement('div', { className:'page-title' }, navItems.find(n=>n.id===page)?.label)
+        ),
+        React.createElement('div', { className:'topbar-right' },
+          !isAdmin && React.createElement('span', { style:{fontSize:'11px',color:'var(--text3)',background:'var(--bg3)',padding:'4px 10px',borderRadius:99,border:'1px solid var(--border)'} }, 'View Only'),
+          React.createElement('button', { className:'theme-btn', onClick:()=>setTheme(t=>t==='dark'?'light':'dark') }, theme==='dark'?'☀':'🌙')
+        )
+      ),
+      React.createElement('div', { className:'content' },
+        page==='dashboard'    && renderDashboard(),
+        page==='transactions' && renderTransactions(),
+        page==='insights'     && renderInsights()
+      )
+    ),
+    modal && (modal==='add'
+      ? React.createElement(AddEditModal, { onSave:handleAdd,  onClose:()=>setModal(null) })
+      : React.createElement(AddEditModal, { tx:modal, onSave:handleEdit, onClose:()=>setModal(null) })
+    ),
+    sidebarOpen && React.createElement('div', {
+      style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:99},
+      onClick:()=>setSidebarOpen(false)
+    })
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
